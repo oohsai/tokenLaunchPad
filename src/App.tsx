@@ -6,21 +6,18 @@ import {
   ConnectionProvider,
   WalletProvider,
 } from "@solana/wallet-adapter-react";
-import {
-  WalletModalProvider,
-  WalletDisconnectButton,
-  WalletMultiButton,
-} from "@solana/wallet-adapter-react-ui";
+import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import "@solana/wallet-adapter-react-ui/styles.css";
+
+const DEVNET_ENDPOINT = "https://api.devnet.solana.com";
 
 function App() {
   return (
     <ThemeProvider>
-      <ConnectionProvider endpoint={"https://api.devnet.solana.com"}>
+      <ConnectionProvider endpoint={DEVNET_ENDPOINT}>
         <WalletProvider wallets={[]} autoConnect>
           <WalletModalProvider>
-            <WalletMultiButton></WalletMultiButton>
-            <Home></Home>
+            <Home />
             <Toaster />
           </WalletModalProvider>
         </WalletProvider>

@@ -5,6 +5,8 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Relative asset paths so the build works under any sub-path (e.g. GitHub Pages).
+  base: "./",
   plugins: [
     tailwindcss(),
     nodePolyfills(),
