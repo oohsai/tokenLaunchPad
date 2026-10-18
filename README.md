@@ -30,7 +30,7 @@ as a Vercel project with these settings (Vercel detects most of them for Vite):
 - Framework preset: **Vite**
 - Build command: `npm run build`
 - Output directory: `dist`
-- Production branch: `main` (or the branch you deploy from)
+- Production branch: `claude/gallant-wozniak-0a1x8h` (change to `main` after merging)
 
 Vercel rebuilds on every push. The GitHub Actions workflow in `.github/workflows/ci.yml`
 runs lint and build checks on each push.
