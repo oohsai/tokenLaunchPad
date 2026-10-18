@@ -24,8 +24,13 @@ npm run preview  # serve the production build locally
 
 ## Deployment
 
-The site is deployed to GitHub Pages by `.github/workflows/deploy.yml`. The
-workflow lints and builds the app, then publishes `dist/` on every push to the
-deployment branch (or on demand via "Run workflow"). Point the `branches` filter
-at `main` once the work is merged. The Vite `base` is relative, so the same
-build works from any sub-path.
+The site is published with [Vercel](https://vercel.com). Import this GitHub repo
+as a Vercel project with these settings (Vercel detects most of them for Vite):
+
+- Framework preset: **Vite**
+- Build command: `npm run build`
+- Output directory: `dist`
+- Production branch: `main` (or the branch you deploy from)
+
+Vercel rebuilds on every push. The GitHub Actions workflow in `.github/workflows/ci.yml`
+runs lint and build checks on each push.
