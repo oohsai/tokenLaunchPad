@@ -1,7 +1,9 @@
-import { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent, type ReactNode } from "react";
 import { toast } from "sonner";
+import { CheckIcon, CopyIcon, ExternalLinkIcon, RocketIcon } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { TokenPreview } from "./TokenPreview";
 import {
   createInitializeMetadataPointerInstruction,
   createInitializeMint2Instruction,
@@ -64,6 +66,11 @@ export default function TokenLaunchpad() {
   const { connection } = useConnection();
   const [form, setForm] = useState<FormState>(initialForm);
   const [isCreating, setIsCreating] = useState(false);
+  const [created, setCreated] = useState<{
+    mint: string;
+    symbol: string;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
     const { id, value } = e.target;
@@ -172,18 +179,8 @@ export default function TokenLaunchpad() {
       );
 
       const mintAddress = mint.publicKey.toBase58();
-      toast.success(`Created ${symbol}`, {
-        description: mintAddress,
-        action: {
-          label: "View",
-          onClick: () =>
-            window.open(
-              `https://explorer.solana.com/address/${mintAddress}?cluster=devnet`,
-              "_blank",
-              "noopener,noreferrer",
-            ),
-        },
-      });
+      toast.success(`Created ${symbol}`, { description: mintAddress });
+      setCreated({ mint: mintAddress, symbol });
       setForm(initialForm);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -193,45 +190,136 @@ export default function TokenLaunchpad() {
     }
   }
 
+  async function copyMint() {
+    if (!created) return;
+    try {
+      await navigator.clipboard.writeText(created.mint);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      toast.error("Could not copy the address");
+    }
+  }
+
   return (
-    <div className="mx-auto flex max-w-lg flex-col gap-4 pt-8">
-      <h1 className="text-5xl font-bold">Token Launchpad</h1>
-      <p className="text-muted-foreground">
-        Create a Token-2022 mint on Solana devnet with on-chain metadata.
-      </p>
-      <Input
-        id="name"
-        placeholder="Name"
-        value={form.name}
-        onChange={handleChange}
-        maxLength={MAX_NAME_LENGTH}
-        type="text"
-      />
-      <Input
-        id="symbol"
-        placeholder="Symbol"
-        value={form.symbol}
-        onChange={handleChange}
-        maxLength={MAX_SYMBOL_LENGTH}
-        type="text"
-      />
-      <Input
-        id="image"
-        placeholder="Image URL (optional)"
-        value={form.image}
-        onChange={handleChange}
-        type="url"
-      />
-      <Input
-        id="metadata"
-        placeholder="Metadata URI (JSON, optional)"
-        value={form.metadata}
-        onChange={handleChange}
-        type="url"
-      />
-      <Button onClick={createToken} disabled={isCreating}>
-        {isCreating ? "Creating…" : "Create token"}
+    <div className="flex flex-col gap-6">
+      <TokenPreview name={form.name} symbol={form.symbol} image={form.image} />
+
+      <div className="grid gap-5">
+        <Field
+          id="name"
+          label="Name"
+          counter={`${form.name.length}/${MAX_NAME_LENGTH}`}
+        >
+          <Input
+            id="name"
+            placeholder="Midnight Marigold"
+            value={form.name}
+            onChange={handleChange}
+            maxLength={MAX_NAME_LENGTH}
+            autoComplete="off"
+            type="text"
+          />
+        </Field>
+        <Field
+          id="symbol"
+          label="Symbol"
+          counter={`${form.symbol.length}/${MAX_SYMBOL_LENGTH}`}
+        >
+          <Input
+            id="symbol"
+            placeholder="MARI"
+            value={form.symbol}
+            onChange={handleChange}
+            maxLength={MAX_SYMBOL_LENGTH}
+            autoComplete="off"
+            type="text"
+          />
+        </Field>
+        <Field id="image" label="Image URL" hint="Optional">
+          <Input
+            id="image"
+            placeholder="https://…/logo.png"
+            value={form.image}
+            onChange={handleChange}
+            autoComplete="off"
+            type="url"
+          />
+        </Field>
+        <Field id="metadata" label="Metadata URI" hint="Optional · JSON">
+          <Input
+            id="metadata"
+            placeholder="https://…/metadata.json"
+            value={form.metadata}
+            onChange={handleChange}
+            autoComplete="off"
+            type="url"
+          />
+        </Field>
+      </div>
+
+      <Button
+        variant="brand"
+        size="xl"
+        onClick={createToken}
+        disabled={isCreating}
+      >
+        <RocketIcon />
+        {isCreating ? "Waiting for your wallet…" : "Launch token"}
       </Button>
+
+      {created && (
+        <div className="rounded-2xl border bg-accent/60 p-4 text-left">
+          <p className="text-sm font-semibold">
+            {created.symbol} is live on devnet
+          </p>
+          <p className="mt-2 break-all rounded-lg bg-background/70 px-3 py-2 font-mono text-xs text-muted-foreground">
+            {created.mint}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={copyMint}>
+              {copied ? <CheckIcon /> : <CopyIcon />}
+              {copied ? "Copied" : "Copy address"}
+            </Button>
+            <Button variant="outline" size="sm" asChild>
+              <a
+                href={`https://explorer.solana.com/address/${created.mint}?cluster=devnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <ExternalLinkIcon />
+                View on Explorer
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field({
+  id,
+  label,
+  hint,
+  counter,
+  children,
+}: {
+  id: string;
+  label: string;
+  hint?: string;
+  counter?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="grid gap-2 text-left">
+      <div className="flex items-baseline justify-between">
+        <label htmlFor={id} className="text-sm font-medium">
+          {label}
+        </label>
+        <span className="text-xs text-muted-foreground">{counter ?? hint}</span>
+      </div>
+      {children}
     </div>
   );
 }

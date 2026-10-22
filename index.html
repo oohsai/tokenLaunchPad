@@ -1,11 +1,25 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-palette="aubergine" class="light">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Token Launchpad</title>
     <meta name="description" content="Create Token-2022 tokens with on-chain metadata on Solana devnet." />
+    <script>
+      // Apply the saved palette and theme before first paint to avoid a flash.
+      try {
+        var root = document.documentElement;
+        var q = new URLSearchParams(location.search).get("palette");
+        var p = q || localStorage.getItem("vite-ui-palette");
+        if (p === "aubergine" || p === "mocha") root.dataset.palette = p;
+        var t = localStorage.getItem("vite-ui-theme") || "light";
+        if (t === "system")
+          t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        root.classList.remove("light", "dark");
+        root.classList.add(t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
